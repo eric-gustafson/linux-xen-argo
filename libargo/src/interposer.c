@@ -315,6 +315,41 @@ INTERPOSE (accept, int, int sockfd, struct sockaddr * addr,
   return ret;
 }
 
+#if defined(SOCK_NONBLOCK) && defined(SOCK_CLOEXEC)
+
+INTERPOSE (accept4, int, int sockfd, struct sockaddr * addr,
+           socklen_t * addrlen, int flags)
+{
+  xen_argo_addr_t peer;
+  int ret;
+
+  CHECK_INTERPOSE (accept4);
+
+  ret = accept(sockfd,addr,addrlen);
+  if ( ret > 0 ) {
+    if (flags & SOCK_NONBLOCK) {
+      long arg;
+      arg = fcntl(ret, F_GETFL, arg);
+      arg |= O_NONBLOCK;
+      if (fcntl(ret, F_SETFL, arg)) {
+        close(ret);
+        return -1;
+      }
+    }
+    if (flags & SOCK_CLOEXEC) {
+      long arg;
+      arg = fcntl(ret, F_GETFD, arg);
+      arg |= FD_CLOEXEC;
+      if (fcntl(ret, F_SETFD, arg)) {
+        close(ret);
+        return -1;
+      }
+    }
+  }
+  return ret;
+}
+#endif
+
 
 
 INTERPOSE (send, ssize_t, int sockfd, const void *buf, size_t len, int flags)
@@ -639,6 +674,7 @@ init (void)
   FIND (bind);
   FIND (connect);
   FIND (accept);
+  FIND (accept4);
   FIND (listen);
   FIND (send);
   FIND (sendmsg);
