@@ -25,6 +25,7 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <sys/uio.h>
+#include <unistd.h>
 #include "fileTransfer.h"
 
 int TransferSizeTable[] = {12, 14, 17, 32,64, 128, 243, 512, 1024, 2048, 4096, 8192, 16384, 32758, 65535};
@@ -64,8 +65,8 @@ int WaitForIncomingConnection(int listenPort, int domid)
     }
     else
     {
-	addr.domain = XEN_ARGO_DOMID_ANY;
-	addr.port = listenPort;
+	addr.domain_id = XEN_ARGO_DOMID_ANY;
+	addr.aport = listenPort;
 
 	/*We need the special argo version of this call to bind for one domain only*/
 	if (argo_bind (svrSocket, &addr, domid))
@@ -111,12 +112,12 @@ int ConnectionToRemote(int remotePort, int domid)
         return 0;
     }
 
-    addr.domain = domid;
-    addr.port = remotePort;
+    addr.domain_id = domid;
+    addr.aport = remotePort;
 
     returnValue = argo_connect(connSocket, &addr);
 
-    printf("%s end. return %d socket: %d\n", __FUNCTION__, returnValue, connSocket);
+    printf("%s end. return %d socket: %d, error=%m\n", __FUNCTION__, returnValue, connSocket);
     return connSocket;
 }
 

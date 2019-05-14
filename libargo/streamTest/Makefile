@@ -18,7 +18,7 @@
 #
 
 CXX=gcc
-CXXFLAGS=-c -Wall -I include 
+CXXFLAGS=-g -c -Wall -I include 
 #-DARGO_EXCLUDE_INTERNAL
 LDFLAGS=
 
